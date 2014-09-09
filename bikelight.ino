@@ -1,27 +1,30 @@
 // the setup routine runs once when you press reset:
-int[] leds = [13, 11, 10, 9, 6];
+int leds[] = {13, 11, 10, 9, 6};
+int buttonPin = 4;
 int analogPin = 0;
 int brightness = 0;
-unsigned long currentTime;
+unsigned long currentTime = 0;
 unsigned long sampleTime;
 unsigned long lastButtonTime;
-int counter;
-int mode;
+int counter = 0;
+int mode = 0;
+int timeOff = 250;
 
 void setup() {
+  Serial.begin(9600);
   // initialize the digital pin as an output.
   for (int i = 0; i < sizeof(leds)/sizeof(int); i++)
   {
     pinMode(leds[i], OUTPUT);     
   }
-  pinMode(SET_THIS_VALUE_RY, INPUT);
-  sampleTime = millis() + 100;
+  pinMode(buttonPin, INPUT);
+  sampleTime = millis() + 50;
   //Set up analog pin for reading
 }
 
-void oneOn(ledIndex) {
-  for (for i=0; i < sizeof(leds)/sizeof(int); i++) {
-    if (i === ledIndex) {
+void oneOn(int ledIndex) {
+  for (int i=0; i < sizeof(leds)/sizeof(int); i++) {
+    if (i == ledIndex) {
       digitalWrite(leds[i], HIGH);
     } else {
       digitalWrite(leds[i], LOW);
@@ -29,16 +32,16 @@ void oneOn(ledIndex) {
   }
 }
 
-void bounce(currentTime,lastButtonTime) {
-  timeDiff = (currentTime - lastButtonTime) / 100;
-  positionOn = floor(timeDiff) % 8;
+void bounce(unsigned long currentTime, unsigned long lastButtonTime) {
+  unsigned long timeDiff = (currentTime - lastButtonTime) / timeOff;
+  int positionOn = (int)floor(timeDiff) % 8;
   if (positionOn > 4) {
     positionOn = 8 - positionOn;
   }
   oneOn(positionOn);
 }
 
-void setAllLeds(setPoint) {
+void setAllLeds(int setPoint) {
   for (int i = 0; i < sizeof(leds)/sizeof(int); i++)
   {
     digitalWrite(leds[i], setPoint);     
@@ -49,17 +52,17 @@ void allOn() {
   setAllLeds(HIGH);
 }
 
-void off() {
+void allOff() {
   setAllLeds(LOW);
 }
 
-void flash(currentTime, lastButtonTime) {
-  timeDiff = (currentTime - lastButtonTime) / 100;
-  ledState = floor(timeDiff) % 2;
+void flash(unsigned long currentTime, unsigned long lastButtonTime) {
+  unsigned long timeDiff = (currentTime - lastButtonTime) / timeOff;
+  int ledState = (int)floor(timeDiff) % 2;
   if (ledState == 0) {
     setAllLeds(HIGH);
   } else {
-    setAllLeds(LOW)
+    setAllLeds(LOW);
   }
 }
 
@@ -69,31 +72,26 @@ void loop() {
 
   brightness = analogRead(analogPin);
 
-  if (mode == NULL)
-  {
-    mode = 0;
-    lastButtonTime = currentTime;
-  }
+  int buttonPress;
 
   if (currentTime >= sampleTime) {
     //Read digital in
-    buttonPress = digitalRead(SET_THIS_VALUE_RY);
+    buttonPress = digitalRead(buttonPin);
     if (buttonPress == HIGH) {
       counter++;
       lastButtonTime = currentTime;
     }
-    sampleTime = currentTime + 100;
+    sampleTime = currentTime + timeOff;
   }
 
   //Read analog in, change counter as needed, choose which function to call
   //if Ain high, increment counter, dont read button again for ~100ms
-
   int mode = counter % 4;
   switch(mode) {
     case 0:
       allOff();
       break;
-    case 1;
+    case 1:
       allOn();
       break;
     case 2:
