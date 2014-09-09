@@ -1,5 +1,7 @@
 // the setup routine runs once when you press reset:
-int[] leds = [13, 11, 10, 9, 6];       
+int[] leds = [13, 11, 10, 9, 6];
+int analogPin = 0;
+int brightness = 0;
 unsigned long currentTime;
 unsigned long sampleTime;
 unsigned long lastButtonTime;
@@ -30,6 +32,9 @@ void oneOn(ledIndex) {
 void bounce(currentTime,lastButtonTime) {
   timeDiff = (currentTime - lastButtonTime) / 100;
   positionOn = floor(timeDiff) % 8;
+  if (positionOn > 4) {
+    positionOn = 8 - positionOn;
+  }
   oneOn(positionOn);
 }
 
@@ -62,18 +67,20 @@ void flash(currentTime, lastButtonTime) {
 void loop() {
   currentTime = millis(); //get current
 
+  brightness = analogRead(analogPin);
+
   if (mode == NULL)
   {
     mode = 0;
-    lastButtonTime = currentTime
+    lastButtonTime = currentTime;
   }
 
-  if (currentTime == sampleTime) {
+  if (currentTime >= sampleTime) {
     //Read digital in
     buttonPress = digitalRead(SET_THIS_VALUE_RY);
     if (buttonPress == HIGH) {
-      counter = counter + 1;
-      lastButtonTime = currentTime
+      counter++;
+      lastButtonTime = currentTime;
     }
     sampleTime = currentTime + 100;
   }
