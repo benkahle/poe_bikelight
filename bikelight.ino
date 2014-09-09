@@ -1,14 +1,13 @@
-// the setup routine runs once when you press reset:
 int leds[] = {13, 11, 10, 9, 6};
 int buttonPin = 4;
 int analogPin = 0;
-int brightness = 0;
+int speed = 250;
 unsigned long currentTime = 0;
 unsigned long sampleTime;
 unsigned long lastButtonTime;
 int counter = 0;
 int mode = 0;
-int timeOff = 250;
+int sampleDelay = 50;
 
 void setup() {
   Serial.begin(9600);
@@ -18,7 +17,7 @@ void setup() {
     pinMode(leds[i], OUTPUT);     
   }
   pinMode(buttonPin, INPUT);
-  sampleTime = millis() + 50;
+  sampleTime = millis() + sampleDelay;
   //Set up analog pin for reading
 }
 
@@ -33,7 +32,7 @@ void oneOn(int ledIndex) {
 }
 
 void bounce(unsigned long currentTime, unsigned long lastButtonTime) {
-  unsigned long timeDiff = (currentTime - lastButtonTime) / timeOff;
+  unsigned long timeDiff = (currentTime - lastButtonTime) / speed;
   int positionOn = (int)floor(timeDiff) % 8;
   if (positionOn > 4) {
     positionOn = 8 - positionOn;
@@ -57,7 +56,7 @@ void allOff() {
 }
 
 void flash(unsigned long currentTime, unsigned long lastButtonTime) {
-  unsigned long timeDiff = (currentTime - lastButtonTime) / timeOff;
+  unsigned long timeDiff = (currentTime - lastButtonTime) / speed;
   int ledState = (int)floor(timeDiff) % 2;
   if (ledState == 0) {
     setAllLeds(HIGH);
@@ -66,11 +65,14 @@ void flash(unsigned long currentTime, unsigned long lastButtonTime) {
   }
 }
 
-// the loop routine runs over and over again forever:
 void loop() {
   currentTime = millis(); //get current
 
-  brightness = analogRead(analogPin);
+  speed = analogRead(analogPin); // 0-1023
+  if (speed < 25) {
+    speed = 25;
+  }
+
 
   int buttonPress;
 
@@ -81,11 +83,9 @@ void loop() {
       counter++;
       lastButtonTime = currentTime;
     }
-    sampleTime = currentTime + timeOff;
+    sampleTime = currentTime + sampleDelay;
   }
 
-  //Read analog in, change counter as needed, choose which function to call
-  //if Ain high, increment counter, dont read button again for ~100ms
   int mode = counter % 4;
   switch(mode) {
     case 0:
