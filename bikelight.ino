@@ -31,8 +31,7 @@ void oneOn(int ledIndex) {
   }
 }
 
-void bounce(unsigned long currentTime, unsigned long lastButtonTime) {
-  unsigned long timeDiff = (currentTime - lastButtonTime) / speed;
+void bounce(unsigned long timeDiff) {
   int positionOn = (int)floor(timeDiff) % 8;
   if (positionOn > 4) {
     positionOn = 8 - positionOn;
@@ -55,8 +54,7 @@ void allOff() {
   setAllLeds(LOW);
 }
 
-void flash(unsigned long currentTime, unsigned long lastButtonTime) {
-  unsigned long timeDiff = (currentTime - lastButtonTime) / speed;
+void flash(unsigned long timeDiff) {
   int ledState = (int)floor(timeDiff) % 2;
   if (ledState == 0) {
     setAllLeds(HIGH);
@@ -66,19 +64,17 @@ void flash(unsigned long currentTime, unsigned long lastButtonTime) {
 }
 
 void loop() {
-  currentTime = millis(); //get current
+  currentTime = millis(); //get current time
 
-  speed = analogRead(analogPin); // 0-1023
+  speed = analogRead(analogPin); // 0-1023 (Potentiometer value from 0-5V)
   if (speed < 25) {
-    speed = 25;
+    speed = 25; // Minimum limit on speed
   }
-
 
   int buttonPress;
 
-  if (currentTime >= sampleTime) {
-    //Read digital in
-    buttonPress = digitalRead(buttonPin);
+  if (currentTime >= sampleTime) { //Prevent debouncing
+    buttonPress = digitalRead(buttonPin); //HIGH = pressed, LOW = not pressed
     if (buttonPress == HIGH) {
       counter++;
       lastButtonTime = currentTime;
@@ -87,6 +83,7 @@ void loop() {
   }
 
   int mode = counter % 4;
+  unsigned long timeDiff = (currentTime - lastButtonTime) / speed;
   switch(mode) {
     case 0:
       allOff();
@@ -95,10 +92,10 @@ void loop() {
       allOn();
       break;
     case 2:
-      flash(currentTime,lastButtonTime);
+      flash(timeDiff);
       break;
     case 3:
-      bounce(currentTime,lastButtonTime);
+      bounce(timeDiff);
       break;
     default:
       break;
