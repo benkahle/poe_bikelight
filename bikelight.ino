@@ -7,7 +7,7 @@ unsigned long sampleTime;
 unsigned long lastButtonTime;
 int counter = 0;
 int mode = 0;
-int sampleDelay = 50;
+int sampleDelay = 100;
 
 void setup() {
   Serial.begin(9600);
